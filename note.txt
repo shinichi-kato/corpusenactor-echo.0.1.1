@@ -1,0 +1,16 @@
+note
+
+● gloud インストール
+
+sudo apt-get install google-cloud-sdk-app-engine-python
+
+● gcloudの初期化
+gcloud init
+
+● ローカルにgoogle cloud appのファイル一式をダウンロード
+git clone https://github.com/GoogleCloudPlatform/python-docs-samples $TUTORIALDIR
+
+● ローカルでのテスト
+cd $TUTORIALDIR/appengine/standard/hello_world
+
+dev_appserver.py .
