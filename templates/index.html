@@ -2,13 +2,23 @@
 <HTML>
   <meta name="viewport" content="width=device-width,initial-scale=1">
 <BODY>
-<H1>PseudoSegmenter</H1>
+<H1>最新の状況</H1>
   <FORM ACTION="./" method="POST">
-    <P>チャットボット用に、軽量だが精度を考慮しない分かち書きを行う</P>
-    <INPUT TYPE="text" name="text" size="60" value="軽量だが精度を考慮しないわかち書き">
+    <H2>2018/2/12 TinySegmenterを使った軽量なわかち書き</H2>
+    <P>TRPGリプライおよび逐語記録をコーパスとしてTinySegmenterを生成した。その動作テスト</P>
+    <INPUT TYPE="text" name="text" size="60" value="洞窟の中は雪は吹き込んでこないけど、非常に寒い">
     <BR><INPUT TYPE="submit" value="  実行  ">
   </FORM>
   <P>結果</P>
-  <P>{{ result }}
+  <P>{{ result }}</P>
+  <HR>
+    <H1>NEXT MOVE</H1>
+      <P>コーパスからvocabulary生成
+    <H2>2018/2/5 </H2>
+    <P>分かち書きにはTinySegmenterが使えそう。先生からサンプルのTRPGコーパスをいただく
+    <H2>2018/2/3</H2>
+    <P>インタビューの結果、最終成果物はiPadアプリの形態が望ましいということがわかった。
+      従ってpythonの大規模なライブラリは使わない前提でまずテキスト検索部分を作りはじめた。
+
 </BODY>
 </HTML>
