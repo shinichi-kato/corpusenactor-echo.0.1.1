@@ -9,3 +9,7 @@ handlers:
 - url: /.*
   script: main.app
 # [END handlers]
+
+libraries:
+- name: numpy
+  version: "1.6.1"
