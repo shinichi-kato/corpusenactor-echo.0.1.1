@@ -42,7 +42,10 @@ def vectorize(text,feat):
             j = feat.index(word)
             wv[i,j] = v[word]
 
-        tf[i] = wv[i] / np.sum(wv[i])
+        nd = np.sum(wv[i])
+
+        if nd != 0:
+            tf[i] = wv[i] / nd
         i += 1
 
 
