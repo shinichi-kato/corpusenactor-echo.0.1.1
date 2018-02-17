@@ -37,33 +37,38 @@ class CorpusEnactor:
 
         self.name = data['name']
 
+
         with codecs.open(data['corpus_path'],'r','utf-8') as f:
             self.corpus = f.readlines()
             """ コメント行の除去 """
             self.corpus = [x for x in self.corpus if not x.startswith('#')]
 
+        self.to_vocabulary()
 
-        if os.path.isfile(TFIDF_CACHE):
-            data = np.load(TFIDF_CACHE,fix_imports=True)
-            self.corpus_df = data['corpus_df']
-            self.corpus_tfidf = data['corpus_tfidf']
+        self.corpus_to_tfidf()
 
-        if os.path.isfile(FEAT_CACHE):
-            with open(FEAT_CACHE,'rb') as f:
-                self.feat = pickle.load(f)
-
-        else:
-            self.to_vocabulary()
-            self.corpus_to_tfidf()
-
-            np.savez(TFIDF_CACHE,
-                corpus_df=self.corpus_df,
-                corpus_tfidf=self.corpus_tfidf
-                )
-
-            with open(FEAT_CACHE,'wb') as f:
-                pickle.dump(self.feat,f)
-
+        #
+        # if os.path.isfile(TFIDF_CACHE):
+        #     data = np.load(TFIDF_CACHE,fix_imports=True)
+        #     self.corpus_df = data['corpus_df']
+        #     self.corpus_tfidf = data['corpus_tfidf']
+        #
+        # if os.path.isfile(FEAT_CACHE):
+        #     with open(FEAT_CACHE,'rb') as f:
+        #         self.feat = pickle.load(f)
+        #
+        # else:
+        #     self.to_vocabulary()
+        #     self.corpus_to_tfidf()
+        #
+        #     np.savez(TFIDF_CACHE,
+        #         corpus_df=self.corpus_df,
+        #         corpus_tfidf=self.corpus_tfidf
+        #         )
+        #
+        #     with open(FEAT_CACHE,'wb') as f:
+        #         pickle.dump(self.feat,f)
+        #
 
     def to_vocabulary(self):
         """
@@ -94,7 +99,6 @@ class CorpusEnactor:
         """
 
 
-
         wv = np.zeros((len(self.corpus),len(self.feat)),dtype=np.float32)
         tf = np.zeros((len(self.corpus),len(self.feat)),dtype=np.float32)
 
@@ -111,8 +115,7 @@ class CorpusEnactor:
                 wv[i,j] = count
 
             tf[i] = wv[i] / np.sum(wv[i])
-        i+=1
-
+            i+=1
 
 
         """
@@ -120,7 +123,6 @@ class CorpusEnactor:
         df(t) = ある単語tが出現する行の数
         idf(t) = log((全行数)/ df(t) )+1
         """
-
         df = np.apply_along_axis(np.count_nonzero,axis=0,arr=wv)
         idf = np.log(tf.shape[0]/df) + 1
 
@@ -214,7 +216,8 @@ def main():
     ce = CorpusEnactor('chatbot/chatbot.yaml')
     print("feat=",ce.feat)
     print("tfidf=",ce.corpus_tfidf)
-    v = ce.speech_to_tfidf("うんうん。眠り袋")
+    v = ce.speech_to_tfidf("動物園へ行こう")
+    print("v=",v)
     results = ce.retrieve(ce.corpus_tfidf,v)[:6]
 
     for r in results:
