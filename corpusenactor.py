@@ -6,26 +6,30 @@ import os
 import yaml
 import codecs
 import pickle
+from collections import Counter
 import numpy as np
 
 from tinysegmenter import TinySegmenter
-Segmenter = tinysegmenter.TinySegmenter()
+Segmenter = TinySegmenter()
 
-TFIDF_CACHE ="cache/tfidf.pickle"
+TFIDF_CACHE = "cache/tfidf.npz"
+FEAT_CACHE = "cache/feat.pikle"
 
 
 class CorpusEnactor:
     """
     ログ型チャットボット
+    会話ログはタブ区切りテキスト形式で、一列目が名前、二列目は発言内容である。
+    先頭が#の行はコメントとみなす
+
     """
 
-    def __init__(setting):
+    def __init__(self,setting):
         """
         setting: yaml形式の設定ファイル
 
         self.name: チャットボットの名前
-        self.corpus: 会話ログのソース
-        self.feat: 会話ログに現れる単語のリスト
+        self.corpus_path: 会話ログのソース
 
         """
         with codecs.open(setting,"r",'utf-8') as f:
@@ -35,23 +39,43 @@ class CorpusEnactor:
 
         with codecs.open(data['corpus_path'],'r','utf-8') as f:
             self.corpus = f.readlines()
+            """ コメント行の除去 """
+            self.corpus = [x for x in self.corpus if not x.startswith('#')]
 
 
         if os.path.isfile(TFIDF_CACHE):
-            with open(TFIDF_CACHE,'rb') as f:
-                self.corpus = pickle.load(f)
+            data = np.load(TFIDF_CACHE,fix_imports=True)
+            self.corpus_df = data['corpus_df']
+            self.corpus_tfidf = data['corpus_tfidf']
+
+        if os.path.isfile(FEAT_CACHE):
+            with open(FEAT_CACHE,'rb') as f:
+                self.feat = pickle.load(f)
+
         else:
+            self.to_vocabulary()
+            self.corpus_to_tfidf()
+
+            np.savez(TFIDF_CACHE,
+                corpus_df=self.corpus_df,
+                corpus_tfidf=self.corpus_tfidf
+                )
+
+            with open(FEAT_CACHE,'wb') as f:
+                pickle.dump(self.feat,f)
 
 
     def to_vocabulary(self):
         """
-        corpusを分かち書きし、単語リストを生成してself.featに格納。
+        corpusの発言部分を分かち書きし、単語リストを生成してself.featに格納。
         """
 
 
         words = []
         text = []
         for line in self.corpus:
+            """ corpusの一列目は発言者名。二列目の発言内容のみ処理する """
+            line = line.split()[1]
             l = Segmenter.segment(line)
             words.extend(l)
             text.append(l)
@@ -69,8 +93,10 @@ class CorpusEnactor:
         あとの計算でdfも必要になるため、ここでselfに格納しておく。
         """
 
-        wv = np.zeros((len(self.corpus),len(self.feat)))
-        tf = np.zeros((len(self.corpus),len(self.feat)))
+
+
+        wv = np.zeros((len(self.corpus),len(self.feat)),dtype=np.float32)
+        tf = np.zeros((len(self.corpus),len(self.feat)),dtype=np.float32)
 
         """
         Term Frequency: 各行内での単語の出現頻度
@@ -80,8 +106,8 @@ class CorpusEnactor:
         i=0
         for line in self.corpus_splitted:
             v = Counter(line)
-            for word,count in v:
-                j = feat.index(word)
+            for word,count in v.items():
+                j = self.feat.index(word)
                 wv[i,j] = count
 
             tf[i] = wv[i] / np.sum(wv[i])
@@ -118,13 +144,18 @@ class CorpusEnactor:
 
 
         """ tf """
-        wv = np.zeros(1,len(self.feat))
-        tf = np.zeros(1,len(self.feat))
+        wv = np.zeros((len(self.feat)))
+        tf = np.zeros((len(self.feat)))
 
         v = Counter(speech)
-        for word,count in v:
-            j = feat.index(word)
-            wv[j] = count
+        for word,count in v.items():
+            if word in self.feat:
+                j = self.feat.index(word)
+                """
+                self.featに含まれない言葉がユーザ発言に含まれる場合、
+                現状無視しているが、相手に聞き返すなどの対処がほしい
+                """
+                wv[j] = count
 
         nd = np.sum(wv)
         if nd == 0:
@@ -138,12 +169,12 @@ class CorpusEnactor:
         """ tfidf """
 
         tf = wv / nd
-        idf = np.log(tf.shape[0]/self.df)+1
+        idf = np.log(tf.shape[0]/self.corpus_df)+1
         tfidf = tf*idf
 
         return tfidf
 
-    def retrieve(ct,vt):
+    def retrieve(self,ct,vt):
         """
         corpusのtfidfとspeechのtdidfでcos類似度ベクターを生成し、
         降順でindexリストを返す
@@ -158,4 +189,37 @@ class CorpusEnactor:
 
         return np.argsort(cossim, axis=0)[::-1]
 
-        
+    def reply(user_speech):
+
+        user_tfidf = self.speech_to_tfidf(user_speech)
+        if user_tfidf:
+            """
+            コーパス中で最も似ていた行を探す
+            """
+            pos = self.retrieve(self.corpus_tfidf,user_tfidf)
+            pos = pos[0]
+            if pos != len(self.corpus):
+                """
+                コーパス中で最も似ていた行の、次の行を返答として返す。
+                コーパスはカンマ区切りテキスト形式で、
+                一列目は名前、二列目は発言内容である。二列目を返答として返す
+                """
+                reply = self.corpus[pos+1]
+                return reply.split(',')[1]
+
+        return __class__.__name__+": reply not found"
+
+
+def main():
+    ce = CorpusEnactor('chatbot/chatbot.yaml')
+    print("feat=",ce.feat)
+    print("tfidf=",ce.corpus_tfidf)
+    v = ce.speech_to_tfidf("うんうん。眠り袋")
+    results = ce.retrieve(ce.corpus_tfidf,v)[:6]
+
+    for r in results:
+        print(r,ce.corpus[r])
+
+
+if __name__ == '__main__':
+    main()
