@@ -18,7 +18,17 @@ FEAT_CACHE = "cache/feat.pikle"
 
 class CorpusEnactor:
     """
-    ログ型チャットボット
+    テキスト検索手法を用いた基本的なチャットボット
+
+    チャットボットでよく用いられる応答方法の一つとして、ユーザの入力に似た文をログの中で検索し、
+    最も似た文の次の行を返答として返す、というアルゴリズムがある。この動作の狙いは
+    「ログ（またはコーパス）を再演する」
+    ことである。CorpusEnactorクラスではユーザの入力文字列に似ている行を見つける最もオーソドックスな
+    計算方法であるtfidf-cos類似度を用いた実装を行う。
+
+    なお、このクラスはGoogle App Engine スタンダード環境でデプロイ可能な設計とする。
+
+    コーパス（会話ログ）
     会話ログはタブ区切りテキスト形式で、一列目が名前、二列目は発言内容である。
     先頭が#の行はコメントとみなす
 
@@ -43,72 +53,66 @@ class CorpusEnactor:
             """ コメント行の除去 """
             self.corpus = [x for x in self.corpus if not x.startswith('#')]
 
-        self.to_vocabulary()
 
-        self.corpus_to_tfidf()
+        if os.path.isfile(TFIDF_CACHE):
+            data = np.load(TFIDF_CACHE,fix_imports=True)
+            self.corpus_df = data['corpus_df']
+            self.corpus_tfidf = data['corpus_tfidf']
 
-        #
-        # if os.path.isfile(TFIDF_CACHE):
-        #     data = np.load(TFIDF_CACHE,fix_imports=True)
-        #     self.corpus_df = data['corpus_df']
-        #     self.corpus_tfidf = data['corpus_tfidf']
-        #
-        # if os.path.isfile(FEAT_CACHE):
-        #     with open(FEAT_CACHE,'rb') as f:
-        #         self.feat = pickle.load(f)
-        #
-        # else:
-        #     self.to_vocabulary()
-        #     self.corpus_to_tfidf()
-        #
-        #     np.savez(TFIDF_CACHE,
-        #         corpus_df=self.corpus_df,
-        #         corpus_tfidf=self.corpus_tfidf
-        #         )
-        #
-        #     with open(FEAT_CACHE,'wb') as f:
-        #         pickle.dump(self.feat,f)
-        #
+        if os.path.isfile(FEAT_CACHE):
+            with open(FEAT_CACHE,'rb') as f:
+                self.feat = pickle.load(f)
 
-    def to_vocabulary(self):
+        else:
+            self.corpus_to_tfidf()
+
+            np.savez(TFIDF_CACHE,
+                corpus_df=self.corpus_df,
+                corpus_tfidf=self.corpus_tfidf
+                )
+
+            with open(FEAT_CACHE,'wb') as f:
+                pickle.dump(self.feat,f)
+
+
+
+    def corpus_to_tfidf(self):
         """
-        corpusの発言部分を分かち書きし、単語リストを生成してself.featに格納。
+        テキスト検索をするため、corpusをtfidf行列に変換する。
+        検索にはdfも必要になるため格納しておく。
         """
 
+        """
+        前処理：
+        corpusの発言部分を分かち書きし、単語リストを生成してself.featに格納する。
+        corpusを分かち書きしたリストのリストに変換し、corpus_splittedに格納する。
+        """
 
         words = []
-        text = []
+        corpus_splitted = []
         for line in self.corpus:
             """ corpusの一列目は発言者名。二列目の発言内容のみ処理する """
             line = line.split()[1]
             l = Segmenter.segment(line)
             words.extend(l)
-            text.append(l)
+            corpus_splitted.append(l)
 
         v = Counter(words)
 
         self.feat = list(v.keys())
-        self.corpus_splitted = text
 
-
-    def corpus_to_tfidf(self):
-        """
-        corpusからテキスト検索をするため、各行のtfidfベクターを
-        予め計算しておき、tfidf行列にしておく。
-        あとの計算でdfも必要になるため、ここでselfに格納しておく。
-        """
-
-
-        wv = np.zeros((len(self.corpus),len(self.feat)),dtype=np.float32)
-        tf = np.zeros((len(self.corpus),len(self.feat)),dtype=np.float32)
 
         """
         Term Frequency: 各行内での単語の出現頻度
         tf(t,d) = (ある単語tの行d内での出現回数)/(行d内の全ての単語の出現回数の和)
         """
 
+
+        wv = np.zeros((len(self.corpus),len(self.feat)),dtype=np.float32)
+        tf = np.zeros((len(self.corpus),len(self.feat)),dtype=np.float32)
+
         i=0
-        for line in self.corpus_splitted:
+        for line in corpus_splitted:
             v = Counter(line)
             for word,count in v.items():
                 j = self.feat.index(word)
@@ -134,10 +138,9 @@ class CorpusEnactor:
 
     def speech_to_tfidf(self,speech):
         """
-        新たに入力されたり生成されたセリフspeechについても、corpusと
-        同じくtfidfベクターを生成する。
-        speechはcorpusに全く現れない単語だけの場合がある。
-        この場合tfidfは計算できないため、Falseを返す
+        与えられた文字列speechをcorpusと同じ方法でtfidfベクターに変換する。
+        ただしspeechはcorpusに全く現れない単語だけの場合がある。
+        この場合tfidfは計算できないため、Noneを返す
 
         """
 
@@ -163,9 +166,9 @@ class CorpusEnactor:
         if nd == 0:
             """
             corpusと何も一致しない文字列の場合
-            Falseを返す
+            Noneを返す
             """
-            return False
+            return None
 
 
         """ tfidf """
@@ -179,7 +182,7 @@ class CorpusEnactor:
     def retrieve(self,ct,vt):
         """
         corpusのtfidfとspeechのtdidfでcos類似度ベクターを生成し、
-        降順でindexリストを返す
+        ベクターの成分は類似度で、それを降順に並び替えたindexリストを返す
 
         cos類似度 = ct・vt / |ct||vt|
         """
@@ -191,10 +194,10 @@ class CorpusEnactor:
 
         return np.argsort(cossim, axis=0)[::-1]
 
-    def reply(user_speech):
+    def reply(self,user_speech):
 
         user_tfidf = self.speech_to_tfidf(user_speech)
-        if user_tfidf:
+        if user_tfidf is not None:
             """
             コーパス中で最も似ていた行を探す
             """
@@ -207,21 +210,22 @@ class CorpusEnactor:
                 一列目は名前、二列目は発言内容である。二列目を返答として返す
                 """
                 reply = self.corpus[pos+1]
-                return reply.split(',')[1]
+                return reply.split('\t')[1]
 
         return __class__.__name__+": reply not found"
 
 
 def main():
     ce = CorpusEnactor('chatbot/chatbot.yaml')
-    print("feat=",ce.feat)
-    print("tfidf=",ce.corpus_tfidf)
-    v = ce.speech_to_tfidf("動物園へ行こう")
-    print("v=",v)
-    results = ce.retrieve(ce.corpus_tfidf,v)[:6]
-
-    for r in results:
-        print(r,ce.corpus[r])
+    # print("feat=",ce.feat)
+    # print("tfidf=",ce.corpus_tfidf)
+    # v = ce.speech_to_tfidf("動物園へ行こう")
+    # print("v=",v)
+    # results = ce.retrieve(ce.corpus_tfidf,v)[:6]
+    #
+    # for r in results:
+    #     print(r,ce.corpus[r])
+    print(ce.reply("動物園へ行こう"))
 
 
 if __name__ == '__main__':
