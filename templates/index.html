@@ -2,23 +2,25 @@
 <HTML>
   <meta name="viewport" content="width=device-width,initial-scale=1">
 <BODY>
-<H1>最新の状況</H1>
-  <FORM ACTION="./" method="POST">
-    <H2>2018/2/12 TinySegmenterを使った軽量なわかち書き</H2>
-    <P>TRPGリプライおよび逐語記録をコーパスとしてTinySegmenterを生成した。その動作テスト</P>
-    <INPUT TYPE="text" name="text" value="洞窟の中は雪は吹き込んでこないけど、非常に寒い">
-    <BR><INPUT TYPE="submit" value="  実行  ">
-  </FORM>
-  <P>結果</P>
-  <P>{{ result }}</P>
-  <HR>
-    <H1>NEXT MOVE</H1>
-      <P>コーパスからvocabulary生成
-    <H2>2018/2/5 </H2>
-    <P>分かち書きにはTinySegmenterが使えそう。先生からサンプルのTRPGコーパスをいただく
-    <H2>2018/2/3</H2>
-    <P>インタビューの結果、最終成果物はiPadアプリの形態が望ましいということがわかった。
-      従ってpythonの大規模なライブラリは使わない前提でまずテキスト検索部分を作りはじめた。
+<H1>最新の状況　</H1>
+{% for line in lines %}
+<div>{{line.speaker}}</div>
+<div>{{line.text}}</div>
+{% endfor %}
+<FORM ACTION="./" method="POST">
+<INPUT TYPE="text" name="text" ><INPUT TYPE="submit" value="送信">
+</FORM>
+<HR>
+  <H1>NEXT MOVE</H1>
+    <P>コーパスからvocabulary生成
+  <H2>2018/2/12 </H2>
+  <P>TinySegmenterを使った軽量な分かち書き<p>
+  <H2>2018/2/3</H2>
+  <H2>2018/2/5 </H2>
+  <P>分かち書きにはTinySegmenterが使えそう。先生からサンプルのTRPGコーパスをいただく
+  <H2>2018/2/3</H2>
+  <P>インタビューの結果、最終成果物はiPadアプリの形態が望ましいということがわかった。
+    従ってpythonの大規模なライブラリは使わない前提でまずテキスト検索部分を作りはじめた。
 
 </BODY>
 </HTML>
