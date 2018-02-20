@@ -9,3 +9,7 @@ http://www.ycf.nanet.co.jp/~skato/muno/
 課題があります。そこで、交流分析(Transactional Analysis)のモデルを
 参考にできるだけ単純化したメカニズムを考え、より自然な雑談ができる
 チャットボットを開発することを目的とします。
+<<<<<<< HEAD
+=======
+
+>>>>>>> 50419320fa551f5b0faafb6d9fedc55d1a691cce
