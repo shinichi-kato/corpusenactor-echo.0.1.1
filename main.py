@@ -4,49 +4,59 @@
 ローカルでのテスト
 virtualenv env
 source ./env/bin/activate
-dev_appserver app.yaml
+dev_appserver.py app.yaml
 
 """
 
 from __future__ import unicode_literals
 from __future__ import print_function
 
-from collections import Counter
+import os
 import logging
-
-import tinysegmenter
-segmenter = tinysegmenter.TinySegmenter()
-
-
+import codecs
 from flask import Flask,render_template, request
+
+from corpusenactor import CorpusEnactor
 
 
 app = Flask(__name__)
 
-def to_vocabulary(text):
-    """
-    スペースで分かち書きされた文字列のリストを受け取り、
-    単語の出現回数を数え上げる。
-    [(単語,回数),(単語,回数)...]というリストを返す
-    """
-    t = []
-    for line in text:
-        t.extend(line.split())
-    v = Counter(t)
-    return v.items()
+MAIN_LOG = "chatbot/log.yaml"
+MAIN_LOG_DISPLAY_LEN = 10
+MAIN_LOG_PRESERVE_LEN = 100
 
 
 @app.route('/',methods=['POST','GET'])
 def index():
+
+    lines = []
+
+    if os.path.isfile(MAIN_LOG):
+        with codecs.open(MAIN_LOG,"r",'utf-8') as f:
+            lines = yaml.load(f)
+
     if request.method == 'POST':
         text = request.form['text']
-    else:
-        text = ""
 
-    result = '|'.join(segmenter.segment(text))
+        ce = CorpusEnactor("chatbot/chatbot.yaml")
+        reply = ce.reply(text)
+
+        lines.append({'speaker':'user','text':text})
+        lines.append({'speaker':'bot','text':reply})
+        lines = lines[-MAIN_LOG_PRESEVE_LEN:]
+
+        try:
+            with codecs.open(MAIN_LOG,'w','utf-8'):
+                fcntl.flock(f,fcntl.LOCK_EX)
+                f.write(yaml.dump(lines,default_flow_style=False))
+                fcntl.flock(f,fcntl.LOCK_UN)
 
 
-    return render_template("index.html",result=result)
+        except OSError:
+            return render_template('retry.html')
+
+
+    return render_template("index.html",lines=lines[-MAIN_LOG_DISPLAY_LEN:])
 
 
 
