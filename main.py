@@ -6,6 +6,9 @@ virtualenv env
 source ./env/bin/activate
 dev_appserver.py app.yaml
 
+デプロイ
+
+
 """
 
 from __future__ import unicode_literals

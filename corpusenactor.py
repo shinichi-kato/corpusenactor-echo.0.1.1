@@ -7,6 +7,7 @@ from __future__ import unicode_literals
 from __future__ import print_function
 
 import os
+import sys
 import yaml
 import codecs
 import pickle
@@ -59,7 +60,10 @@ class CorpusEnactor:
 
 
         if os.path.isfile(TFIDF_CACHE):
-            data = np.load(TFIDF_CACHE,fix_imports=True)
+            if sys.version_info.major == 2:
+                data = np.load(TFIDF_CACHE)
+            else:
+                data = np.load(TFIDF_CACHE,fix_imports=True)
             self.corpus_df = data['corpus_df']
             self.corpus_tfidf = data['corpus_tfidf']
 
