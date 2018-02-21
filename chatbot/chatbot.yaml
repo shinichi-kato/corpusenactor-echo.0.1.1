@@ -1,3 +1,3 @@
 # chatbot.yaml
 name : chatbot0
-corpus_path : chatbot/test.txt
+corpus_path : chatbot/corpus.txt

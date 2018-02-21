@@ -1,18 +1,23 @@
 <!DOCTYPE html>
 <HTML>
   <meta name="viewport" content="width=device-width,initial-scale=1">
-<BODY>
-<H1>最新の状況　</H1>
+<BODY OnLoad="document.form1.text.focus()">
+<H1>最新の状況:最小限のチャットボット　</H1>
+<div style="padding: 10px; background-color: #EEEEEE;">
 {% for line in lines %}
 <div>{{line.speaker}}</div>
 <div>{{line.text}}</div>
 {% endfor %}
-<FORM ACTION="./" method="POST">
+<FORM ACTION="./" method="POST" name="form1">
 <INPUT TYPE="text" name="text" ><INPUT TYPE="submit" value="送信">
 </FORM>
+</DIV>
+コーパスをテキスト検索し、似た行の次の行を返答として返すチャットボットです。
+その他一切の機能はありません。
 <HR>
   <H1>NEXT MOVE</H1>
-    <P>コーパスからvocabulary生成
+    <P>Google Cloud Storageを使ったログの保存
+    <P>UI
   <H2>2018/2/12 </H2>
   <P>TinySegmenterを使った軽量な分かち書き<p>
   <H2>2018/2/3</H2>
@@ -21,7 +26,7 @@
   <H2>2018/2/3</H2>
   <P>インタビューの結果、最終成果物はiPadアプリの形態が望ましいということがわかった。
     従ってpythonの大規模なライブラリは使わない前提でまずテキスト検索部分を作りはじめた。
-    
+
 
 </BODY>
 </HTML>

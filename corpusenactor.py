@@ -1,7 +1,10 @@
 # -*- coding: utf-8 -*-
+
 """
 CorpusEnactorクラス
 """
+from __future__ import unicode_literals
+from __future__ import print_function
 
 import os
 import yaml
@@ -14,7 +17,7 @@ from tinysegmenter import TinySegmenter
 Segmenter = TinySegmenter()
 
 TFIDF_CACHE = "cache/tfidf.npz"
-FEAT_CACHE = "cache/feat.pikle"
+FEAT_CACHE = "cache/feat.pickle"
 
 
 class CorpusEnactor:
@@ -204,16 +207,18 @@ class CorpusEnactor:
             """
             pos = self.retrieve(self.corpus_tfidf,user_tfidf)
             pos = pos[0]
-            if pos != len(self.corpus):
+            if pos < len(self.corpus):
                 """
                 コーパス中で最も似ていた行の、次の行を返答として返す。
                 コーパスはカンマ区切りテキスト形式で、
                 一列目は名前、二列目は発言内容である。二列目を返答として返す
                 """
                 reply = self.corpus[pos+1]
+
                 return reply.split('\t')[1]
 
-        return __class__.__name__+": reply not found"
+
+        return self.__class__.__name__+": reply not found"
 
 
 def main():

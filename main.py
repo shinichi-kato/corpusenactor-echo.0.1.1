@@ -21,7 +21,6 @@ from corpusenactor import CorpusEnactor
 
 app = Flask(__name__)
 
-MAIN_LOG = "chatbot/log.yaml"
 MAIN_LOG_DISPLAY_LEN = 10
 MAIN_LOG_PRESERVE_LEN = 100
 
@@ -31,10 +30,6 @@ def index():
 
     lines = []
 
-    if os.path.isfile(MAIN_LOG):
-        with codecs.open(MAIN_LOG,"r",'utf-8') as f:
-            lines = yaml.load(f)
-
     if request.method == 'POST':
         text = request.form['text']
 
@@ -43,17 +38,7 @@ def index():
 
         lines.append({'speaker':'user','text':text})
         lines.append({'speaker':'bot','text':reply})
-        lines = lines[-MAIN_LOG_PRESEVE_LEN:]
-
-        try:
-            with codecs.open(MAIN_LOG,'w','utf-8'):
-                fcntl.flock(f,fcntl.LOCK_EX)
-                f.write(yaml.dump(lines,default_flow_style=False))
-                fcntl.flock(f,fcntl.LOCK_UN)
-
-
-        except OSError:
-            return render_template('retry.html')
+        lines = lines[-MAIN_LOG_PRESERVE_LEN:]
 
 
     return render_template("index.html",lines=lines[-MAIN_LOG_DISPLAY_LEN:])
