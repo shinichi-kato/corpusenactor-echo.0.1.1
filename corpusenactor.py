@@ -195,7 +195,7 @@ class CorpusEnactor:
         cos類似度 = ct・vt / |ct||vt|
         """
         inner = np.inner(ct,vt)
-        norm_ct = np.linalg.norm(ct,axis=1)
+        norm_ct = np.apply_along_axis(np.linalg.norm,axis=1,arr=ct)
         norm_vt = np.linalg.norm(vt)
 
         cossim = inner / (norm_ct*norm_vt)
