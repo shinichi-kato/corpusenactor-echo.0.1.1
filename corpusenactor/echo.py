@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 """
-CorpusEnactorクラス
+CorpusEnactor.Echoクラス
 """
 from __future__ import unicode_literals
 from __future__ import print_function
@@ -14,6 +14,9 @@ import pickle
 from collections import Counter
 import numpy as np
 
+import cloudstorage
+from google.appengine.api import app_identity
+
 from tinysegmenter import TinySegmenter
 Segmenter = TinySegmenter()
 
@@ -21,15 +24,15 @@ TFIDF_CACHE = "cache/tfidf.npz"
 FEAT_CACHE = "cache/feat.pickle"
 
 
-class CorpusEnactor:
+class Echo:
     """
     テキスト検索手法を用いた基本的なチャットボット
 
     チャットボットでよく用いられる応答方法の一つとして、ユーザの入力に似た文をログの中で検索し、
     最も似た文の次の行を返答として返す、というアルゴリズムがある。この動作の狙いは
     「ログ（またはコーパス）を再演する」
-    ことである。CorpusEnactorクラスではユーザの入力文字列に似ている行を見つける最もオーソドックスな
-    計算方法であるtfidf-cos類似度を用いた実装を行う。
+    ことである。CorpusEnactor.Echoクラスではユーザの入力文字列に似ている行を見つける最も
+    オーソドックスな計算方法であるtfidf-cos類似度を用いた実装を行う。
 
     なお、このクラスはGoogle App Engine スタンダード環境でデプロイ可能な設計とする。
 

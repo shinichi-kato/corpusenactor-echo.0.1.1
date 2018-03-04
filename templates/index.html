@@ -5,8 +5,7 @@
 <H1>最新の状況:最小限のチャットボット　</H1>
 <div style="padding: 10px; background-color: #EEEEEE;">
 {% for line in lines %}
-<div>{{line.speaker}}</div>
-<div>{{line.text}}</div>
+<div>{{line}}</div>
 {% endfor %}
 <FORM ACTION="./" method="POST" name="form1">
 <INPUT TYPE="text" name="text" ><INPUT TYPE="submit" value="送信">
