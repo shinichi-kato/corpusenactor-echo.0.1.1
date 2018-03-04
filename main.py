@@ -25,7 +25,7 @@ from __future__ import print_function
 
 import os
 import logging
-import codecs
+import pickle
 from flask import Flask,render_template, request
 
 import cloudstorage
@@ -48,6 +48,7 @@ MAIN_LOG_PRESERVE_LEN = 100
 LOG_FILENAME = '/'+BUCKET_NAME+"/main_log"
 
 
+
 @app.route('/',methods=['POST','GET'])
 def index():
 
@@ -59,21 +60,24 @@ def index():
         ce = Echo("chatbot/chatbot.yaml")
         reply = ce.reply(text)
 
-        stats = cloudstorage.listbucket(LOG_FILENAME)
+        # cloudstorage.delete(LOG_FILENAME)
 
+        """
+        cloudstorageにファイルがあれば読み込む
+        """
+        stats = cloudstorage.listbucket(LOG_FILENAME)
         for stat in stats:
             with cloudstorage.open(LOG_FILENAME) as f:
-                lines = f.read().decode('utf-8').split('\n')
+                lines = pickle.load(f)
 
-        lines.append("user:"+text)
-        lines.append("bot:"+reply)
+        lines.append({"speaker":"user","text":text})
+        lines.append({"speaker":"bot","text":reply})
         lines = lines[-MAIN_LOG_PRESERVE_LEN:]
-        print (lines)
 
         write_retry_params = cloudstorage.RetryParams(backoff_factor=1.1)
         with cloudstorage.open(LOG_FILENAME,'w',content_type='text/plain',
             retry_params=write_retry_params) as f:
-            f.write("\n".join(lines).encode('utf-8'))
+            pickle.dump(lines, f)
 
     return render_template("index.html",lines=lines[-MAIN_LOG_DISPLAY_LEN:])
 
