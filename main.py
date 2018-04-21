@@ -7,15 +7,6 @@ python-docs-samples/appengine/standard/storage/appengine-client/lib
 の中身(cloudstorageとGoogleAppEngineCloudStorageClient)をこのプロジェクトの
 libにコピー
 
-ローカルでのテスト
-virtualenv env
-source ./env/bin/activate
-dev_appserver.py app.yaml
-
-デプロイ
-
-gcloud app deploy
-gcloud app browse
 
 """
 

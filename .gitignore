@@ -1,5 +1,6 @@
-lib/
 env/
 package/
 credentials/
 *.pyc
+lib/cloudstorage/
+lib/GoogleAppEngineCloudStorage*/
