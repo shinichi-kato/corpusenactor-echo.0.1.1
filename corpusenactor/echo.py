@@ -2,6 +2,9 @@
 
 """
 CorpusEnactor.Echoクラス
+
+計算データをcloudstorageに保存するよう変更
+
 """
 from __future__ import unicode_literals
 from __future__ import print_function
@@ -17,11 +20,19 @@ import numpy as np
 import cloudstorage
 from google.appengine.api import app_identity
 
+cloudstorage.set_default_retry_params(
+    cloudstorage.RetryParams(
+        initial_delay=0.2, max_delay=5.0, backoff_factor=2, max_retry_period=15
+        ))
+
+BUCKET_NAME = app_identity.get_default_gcs_bucket_name()
+
 from tinysegmenter import TinySegmenter
 Segmenter = TinySegmenter()
 
-TFIDF_CACHE = "cache/tfidf.npz"
-FEAT_CACHE = "cache/feat.pickle"
+TFIDF_CACHE = '/{}/cache/tfidf.npy'.format(BUCKET_NAME)
+DF_CACHE = '/{}/cache/df.npy'.format(BUCKET_NAME)
+FEAT_CACHE = '/{}/cache/feat.pickle'.format(BUCKET_NAME)
 
 
 class Echo:
@@ -62,27 +73,27 @@ class Echo:
             self.corpus = [x for x in self.corpus if not x.startswith('#')]
 
 
-        if os.path.isfile(TFIDF_CACHE):
-            if sys.version_info.major == 2:
-                data = np.load(TFIDF_CACHE)
-            else:
-                data = np.load(TFIDF_CACHE,fix_imports=True)
-            self.corpus_df = data['corpus_df']
-            self.corpus_tfidf = data['corpus_tfidf']
-
-        if os.path.isfile(FEAT_CACHE):
-            with open(FEAT_CACHE,'rb') as f:
+        try:
+            with cloudstorage.open(TFIDF_CACHE) as f:
+                self.corpus_tfidf = np.load(f)
+            with cloudstorage.open(DF_CACHE) as f:
+                self.corpus_df = np.load(f)
+            with cloudstorage.open(FEAT_CACHE,'r') as f:
                 self.feat = pickle.load(f)
 
-        else:
+        except (cloudstorage.NotFoundError, EOFError):
             self.corpus_to_tfidf()
+            """
+            np.savezはtmpfileを使っているためGAE標準環境では使用できない。
+            そこでnp.saveで一つずつ保存する。
+            """
+            with cloudstorage.open(TFIDF_CACHE,'w') as f:
+                np.save(f,self.corpus_tfidf)
 
-            np.savez(TFIDF_CACHE,
-                corpus_df=self.corpus_df,
-                corpus_tfidf=self.corpus_tfidf
-                )
+            with cloudstorage.open(DF_CACHE,'w') as f:
+                np.save(f,self.corpus_df)
 
-            with open(FEAT_CACHE,'wb') as f:
+            with cloudstorage.open(FEAT_CACHE,'w') as f:
                 pickle.dump(self.feat,f)
 
 

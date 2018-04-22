@@ -1,12 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 """
-cloudstorageの準備
-googleからサンプルプログラムを他のディレクトリにcloneしておき、
-python-docs-samples/appengine/standard/storage/appengine-client/lib
-の中身(cloudstorageとGoogleAppEngineCloudStorageClient)をこのプロジェクトの
-libにコピー
-
+CorpusEnactor.Echo-0.1.1 UI
 
 """
 
@@ -56,16 +51,18 @@ def index():
         """
         cloudstorageにファイルがあれば読み込む
         """
-        stats = cloudstorage.listbucket(LOG_FILENAME)
-        for stat in stats:
+        try:
             with cloudstorage.open(LOG_FILENAME) as f:
                 lines = pickle.load(f)
+        except cloudstorage.NotFoundError:
+            pass
 
         lines.append({"speaker":"user","text":text})
         lines.append({"speaker":"bot","text":reply})
         lines = lines[-MAIN_LOG_PRESERVE_LEN:]
 
         write_retry_params = cloudstorage.RetryParams(backoff_factor=1.1)
+
         with cloudstorage.open(LOG_FILENAME,'w',content_type='text/plain',
             retry_params=write_retry_params) as f:
             pickle.dump(lines, f)
