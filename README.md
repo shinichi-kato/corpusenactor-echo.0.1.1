@@ -5,11 +5,12 @@
 チャットボットは会話のパターンを模倣することでユーザと会話をするプログラムです。そのパターンの一つに
 「会話ログの再現」があり、その中で最もシンプルなものはユーザから入力された発言と最も似た行を会話ログの
 中から検索し、その行の次の行を返答として返す、というものです。 CorpusEnactor.Echo は検索の手法として
-検索サイトなどで標準的に使われる TFIDF-cos類似度 を用いて実装します。
+検索サイトなどで標準的に使われる TFIDF-cos類似度 を用いてチャットボットを実装します。
+version 0.1.1は計算データをcloudstorage上に保持するように変更しました。
 
 ## Getting Started
 
-CorpusEnactor.Echo は Google Application Engine 標準環境にて動作するよう設計されています。
+CorpusEnactor.Echo は Google Application Engine 標準環境で動作するよう設計されています。
 以下に開発環境設定、ダウンロード、ローカルでのテストからデプロイまでの手順を示します。
 
 ### Prerequisites
@@ -24,7 +25,6 @@ pythonのバージョンは2系、3系どちらでもOKです。以下のコマ�
 ```
 conda create -n gaestd anaconda numpy=1.6 python=2.7
 source activate gaestd
-
 ```
 
 ### Installing
@@ -32,7 +32,6 @@ source activate gaestd
 このソースコードを展開したディレクトリに移動し、以下のコマンドを実行してください。これは初回のみ実行します。
 
 ```
-mkdir 
 pip install -r requirements.txt
 pip install --upgrade google-cloud-storage
 pip install GoogleAppEngineCloudStorageClient -t lib/
