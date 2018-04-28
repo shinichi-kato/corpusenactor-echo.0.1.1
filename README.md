@@ -1,4 +1,4 @@
-# CorpusEnactor_Echo-0.1.1
+# CorpusEnactor_Echo-0.2.0
 テキスト検索手法を使ったシンプルなチャットボット
 ====
 ## Description
