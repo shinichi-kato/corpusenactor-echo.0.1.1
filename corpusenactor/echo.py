@@ -66,7 +66,6 @@ class Echo:
 
         self.name = data['name']
 
-
         with codecs.open(data['corpus_path'],'r','utf-8') as f:
             self.corpus = f.readlines()
             """ コメント行の除去 """
@@ -237,20 +236,3 @@ class Echo:
 
 
         return self.__class__.__name__+": reply not found"
-
-
-def main():
-    ce = CorpusEnactor('chatbot/chatbot.yaml')
-    # print("feat=",ce.feat)
-    # print("tfidf=",ce.corpus_tfidf)
-    # v = ce.speech_to_tfidf("動物園へ行こう")
-    # print("v=",v)
-    # results = ce.retrieve(ce.corpus_tfidf,v)[:6]
-    #
-    # for r in results:
-    #     print(r,ce.corpus[r])
-    print(ce.reply("動物園へ行こう"))
-
-
-if __name__ == '__main__':
-    main()
