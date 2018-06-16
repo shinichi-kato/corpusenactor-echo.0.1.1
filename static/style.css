@@ -1,0 +1,126 @@
+/* console */
+.console {
+padding: 10px; background-color: #EEEEEE;
+}
+
+input {
+	font-size: 20px;
+}
+/* http://affi-ken.com/layout/post-27/ */
+/* balloon */
+.balloon p {
+	margin:0;
+	padding:0;
+}
+.balloon {
+	margin-bottom:20px;
+	position:relative;
+}
+.balloon.right-box {
+	padding-right:90px; /*130px*/
+}
+.balloon.left-box {
+	padding-left:60px;
+}
+	.balloon .balloonbox {
+		width:100%;
+	}
+		.balloon .balloonbox .txt {
+			font-size:14px;
+			line-height:1.8em;
+			padding:10px 0;
+		}
+
+		.balloon .balloonbox #balloon-right,
+		.balloon .balloonbox #balloon-left {
+			position: relative;
+			display: inline-block;
+			padding: 0 15px;
+			width: 100%;
+			color: #000;
+			text-align: center;
+			background: #fff;
+			z-index: 0;
+			box-shadow: 3px 1px 3px rgba(255, 255, 255, 0.2) inset, 3px 1px 2px rgba(0, 0, 0, 0.05);
+			border:1px solid #D8D8D8;
+			text-align:left;
+			border-radius:10px;
+			min-height:60px; /*100px*/
+		}
+		.balloon .balloonbox #balloon-left {
+			width:90%;
+		}
+		.balloon .balloonbox #balloon-right:before {
+			content: "";
+			position: absolute;
+			top: 22px;
+			right: -8px;
+			margin-top: -9px;
+			display: block;
+			width: 0px;
+			height: 0px;
+			border-style: solid;
+			border-width: 9px 0 9px 9px;
+			border-color: transparent transparent transparent #fff;
+			z-index: 0;
+		}
+		.balloon .balloonbox #balloon-right:after {
+			content: "";
+			position: absolute;
+			top: 22px;
+			right: -9px;
+			margin-top: -10px;
+			display: block;
+			width: 0px;
+			height: 0px;
+			border-style: solid;
+			border-width: 10px 0 9px 9px;
+			border-color: transparent transparent transparent #D8D8D8;
+			z-index: -1;
+		}
+
+		.balloon .balloonbox #balloon-left:before {
+			content: "";
+			position: absolute;
+			top: 22px; left: -8px;
+			margin-top: -9px;
+			display: block;
+			width: 0px;
+			height: 0px;
+			border-style: solid;
+			border-width: 9px 9px 9px 0;
+			border-color: transparent #fff transparent transparent;
+			z-index: 0;
+		}
+		.balloon .balloonbox #balloon-left:after {
+			content: "";
+			position: absolute;
+			top: 22px; left: -9px;
+			margin-top: -10px;
+			display: block;
+			width: 0px;
+			height: 0px;
+			border-style: solid;
+			border-width: 10px 9px 9px 0;
+			border-color: transparent #D8D8D8 transparent transparent;
+			z-index: -1;
+		}
+/*アイコン*/
+	.balloon.right-box .img {
+			width:40px; /*80px*/
+			top:10px;
+			right:0;
+			position:absolute;
+		}
+	.balloon.left-box .img {
+			width:40px; /*80px*/
+			top:10px;
+			left:0;
+			position:absolute;
+		}
+		.balloon .img img {
+			border-radius:50%;
+			box-shadow: 3px 1px 3px rgba(255, 255, 255, 0.2) inset, 3px 1px 2px rgba(0, 0, 0, 0.05);
+			border:1px solid #D8D8D8;
+			width:100%;
+		}

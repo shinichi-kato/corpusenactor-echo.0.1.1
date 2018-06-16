@@ -1,19 +1,36 @@
 <!DOCTYPE html>
-<HTML>
-  <meta name="viewport" content="width=device-width,initial-scale=1">
-<BODY OnLoad="document.form1.text.focus()">
+<html lang="ja">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1 minimum-scale=1, maximum-scale=1">
+<link rel="stylesheet" type="text/css" href="static/style.css">
+<title></title>
 
-<div style="padding: 10px; background-color: #EEEEEE;">
+<script type="text/javascript">
 
-<FORM ACTION="./" method="POST" name="form1">
-<INPUT TYPE="text" name="text" ><INPUT TYPE="submit" value="送信">
+MAIN_LOG_DISPLAY_LEN =  {{ MAIN_LOG_DISPLAY_LEN }}
+
+</script>
+<script type="text/javascript" src="static/ajaxchat.js"></script>
+
+</head>
+<body OnLoad="timekeeper(); document.form1.speech.focus()">
+  <div id='mainwindow'>
+  {% for line in lines %}
+  <div class="balloon {{line['side']}}-box">
+    <div class="balloonbox">
+    <div id="balloon-{{line['side']}}">
+    <p class="txt">{{line['speech']}}</p></div></div>
+    <p class="img"><img src="static/{{line['side']}}.png"/></p>
+  </div>
+  {% endfor %}
+  </div>
+<div id="console">
+<FORM ACTION="" method="POST" name="form1" onsubmit="return engage()">
+<INPUT TYPE="text" id='speech' name="speech" style="width:80%;">
+<INPUT TYPE="button" value="送信" onclick="return engage()" style="width:15%">
 </FORM>
-</DIV>
-{% for line in lines %}
-<div>{{line.speaker}}</div>
-<div>{{line.text}}</div>
-{% endfor %}
+</div>
 
-
-</BODY>
-</HTML>
+</body>
+</html>

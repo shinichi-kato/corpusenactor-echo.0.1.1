@@ -12,7 +12,8 @@ from __future__ import print_function
 import os
 import logging
 import pickle
-from flask import Flask,render_template, request
+import json
+from flask import Flask,render_template, request, jsonify
 
 import cloudstorage
 from google.appengine.api import app_identity
@@ -39,36 +40,60 @@ LOG_FILENAME = '/'+BUCKET_NAME+"/main_log"
 def index():
 
     lines = []
+    """
+    cloudstorageにファイルがあれば読み込む
+    """
+    try:
+        with cloudstorage.open(LOG_FILENAME) as f:
+            lines = pickle.load(f)
 
-    if request.method == 'POST':
-        text = request.form['text']
+    except cloudstorage.NotFoundError as e:
+        lines.append({'side':'left','speech':'Info: CouldStorage is Empty.'})
+
+    return render_template("index.html",
+        lines=lines[-MAIN_LOG_DISPLAY_LEN:],
+        MAIN_LOG_DISPLAY_LEN=MAIN_LOG_DISPLAY_LEN)
+
+
+@app.route('/ajax',methods=['POST'])
+def ajax_request():
+    data = json.loads(request.data)
+
+    lines=[]
+
+    """  ログファイルを読み込む  """
+    try:
+        with cloudstorage.open(LOG_FILENAME) as f:
+            lines = pickle.load(f)
+    except cloudstorage.NotFoundError as e:
+        # lines.append({'side':'left','speech':e.message})
+        pass
+
+    cmd = data['command']
+
+    if cmd == 'dump':
+        return jsonify(log=lines)
+
+    else:
+        speech = data['speech']
 
         ce = Echo("chatbot/chatbot.yaml")
-        reply = ce.reply(text)
+        reply = ce.reply(speech)
 
-        # cloudstorage.delete(LOG_FILENAME)
+        if reply is False:
+            reply = "not found"
 
-        """
-        cloudstorageにファイルがあれば読み込む
-        """
-        try:
-            with cloudstorage.open(LOG_FILENAME) as f:
-                lines = pickle.load(f)
-        except cloudstorage.NotFoundError:
-            pass
+        lines.append({"side":"right","speech":speech})
+        lines.append({"side":"left","speech":reply})
 
-        lines.append({"speaker":"user","text":text})
-        lines.append({"speaker":"bot","text":reply})
         lines = lines[-MAIN_LOG_PRESERVE_LEN:]
-
         write_retry_params = cloudstorage.RetryParams(backoff_factor=1.1)
 
-        with cloudstorage.open(LOG_FILENAME,'w',content_type='text/plain',
+        with cloudstorage.open(LOG_FILENAME,'w',
             retry_params=write_retry_params) as f:
             pickle.dump(lines, f)
 
-    return render_template("index.html",lines=lines[-MAIN_LOG_DISPLAY_LEN:])
-
+        return jsonify(log=[{'side':'left','speech':reply,'delay':len(reply)*0.1}])
 
 
 
